@@ -66,7 +66,7 @@ The project utilizes clang-tidy for static code analysis. Adjust the configurati
 ```
 MIT License
 
-Copyright (c) [2025] [pacer]
+Copyright (c) 2025 pacer
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
