@@ -9,6 +9,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(CURL REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
+find_program(CLANG_TIDY "clang-tidy")
+if(CLANG_TIDY)
+  set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY}")
+endif()
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
 add_subdirectory(src)
