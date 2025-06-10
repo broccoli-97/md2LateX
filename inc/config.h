@@ -3,5 +3,5 @@
 #include <string>
 
 namespace config {
-    const std::string API_URL = "https://jsonplaceholder.typicode.com/posts/1";
+const std::string API_URL = "https://jsonplaceholder.typicode.com/posts/1";
 }
