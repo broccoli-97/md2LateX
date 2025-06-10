@@ -1,12 +1,9 @@
-# Checks: "-*,performance-*,modernize-*,readability-*,bugprone-*,-modernize-use-trailing-return-type"
-# WarningsAsErrors: ""
-# HeaderFilterRegex: ".*"
-# FormatStyle: "file"
-# CheckOptions:
-#   - key: readability-identifier-naming.ClassCase
-#     value: CamelCase
-#   - key: readability-identifier-naming.FunctionCase
-#     value: camelBack
-
-Checks: "*, -llvmlibc-restrict-system-libc-headers, -misc-include-cleaner"
+Checks: "-*,performance-*,modernize-*,readability-*,bugprone-*,-modernize-use-trailing-return-type"
 WarningsAsErrors: false
+HeaderFilterRegex: ".*"
+FormatStyle: "file"
+CheckOptions:
+  - key: readability-identifier-naming.ClassCase
+    value: CamelCase
+  - key: readability-identifier-naming.FunctionCase
+    value: camelBack
