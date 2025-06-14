@@ -12,11 +12,10 @@
 #include <string>
 #include <vector>
 
-
 namespace citation
 {
 
-// 论文信息结构体
+// Paper information structure
 struct PaperInfo
 {
     std::string title;
@@ -31,14 +30,14 @@ struct PaperInfo
     std::string publisher;
     std::string abstract;
     std::string citation_key;
-    // 添加书籍相关字段
+    // Additional fields for books
     std::string book_title;
     std::string edition;
     std::string isbn;
-    std::string type{"article"}; // 可以是 "article" 或 "book"
+    std::string type{"article"}; // Can be "article" or "book"
 };
 
-// API查询结果
+// API query result structure
 struct QueryResult
 {
     std::vector<PaperInfo> papers;
@@ -47,7 +46,7 @@ struct QueryResult
     std::string error_message;
 };
 
-// 网络请求回调函数
+// Network request callback function
 static size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *s)
 {
     size_t newLength = size * nmemb;
@@ -62,7 +61,7 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::stri
     }
 }
 
-// 抽象基类
+// Abstract base class
 class CitationSource
 {
   public:
@@ -71,7 +70,7 @@ class CitationSource
     virtual std::string name() const = 0;
 };
 
-// CrossRef API实现
+// CrossRef API implementation
 class CrossRefAPI : public CitationSource
 {
   public:
@@ -79,7 +78,7 @@ class CrossRefAPI : public CitationSource
     {
         QueryResult result;
 
-        // 初始化CURL
+        // Initialize CURL
         CURL *curl = curl_easy_init();
         if (!curl)
         {
@@ -87,7 +86,7 @@ class CrossRefAPI : public CitationSource
             return result;
         }
 
-        // 构建URL并对查询字符串进行URL编码
+        // Construct URL and encode the query string
         char *encoded_query = curl_easy_escape(curl, query_string.c_str(), query_string.length());
         if (!encoded_query)
         {
@@ -100,17 +99,17 @@ class CrossRefAPI : public CitationSource
                           "&rows=5&sort=relevance";
         curl_free(encoded_query);
 
-        // 设置请求参数
+        // Set request parameters
         std::string response_string;
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
 
-        // 添加用户代理和邮箱，CrossRef API推荐
+        // Add user agent and email as recommended by the CrossRef API
         curl_easy_setopt(curl, CURLOPT_USERAGENT,
                          "PaperCitationTool/1.0 (mailto:user@example.com)");
 
-        // 执行请求
+        // Perform the request
         CURLcode res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
 
@@ -124,7 +123,7 @@ class CrossRefAPI : public CitationSource
 
         try
         {
-            // 解析JSON响应
+            // Parse JSON response
             auto json = nlohmann::json::parse(response_string);
             auto items = json["message"]["items"];
 
@@ -132,13 +131,13 @@ class CrossRefAPI : public CitationSource
             {
                 PaperInfo paper;
 
-                // 提取标题
+                // Extract title
                 if (item.contains("title") && !item["title"].empty())
                 {
                     paper.title = item["title"][0];
                 }
 
-                // 提取作者
+                // Extract authors
                 if (item.contains("author"))
                 {
                     for (const auto &author : item["author"])
@@ -161,31 +160,31 @@ class CrossRefAPI : public CitationSource
                     }
                 }
 
-                // 提取期刊信息
+                // Extract journal information
                 if (item.contains("container-title") && !item["container-title"].empty())
                 {
                     paper.journal = item["container-title"][0];
                 }
 
-                // 提取卷号
+                // Extract volume number
                 if (item.contains("volume"))
                 {
                     paper.volume = item["volume"];
                 }
 
-                // 提取期号
+                // Extract issue number
                 if (item.contains("issue"))
                 {
                     paper.issue = item["issue"];
                 }
 
-                // 提取页码
+                // Extract page numbers
                 if (item.contains("page"))
                 {
                     paper.pages = item["page"];
                 }
 
-                // 提取年份
+                // Extract year
                 if (item.contains("published") && item["published"].contains("date-parts") &&
                     !item["published"]["date-parts"].empty() &&
                     !item["published"]["date-parts"][0].empty())
@@ -193,34 +192,34 @@ class CrossRefAPI : public CitationSource
                     paper.year = std::to_string(item["published"]["date-parts"][0][0].get<int>());
                 }
 
-                // 提取DOI
+                // Extract DOI
                 if (item.contains("DOI"))
                 {
                     paper.doi = item["DOI"];
                 }
 
-                // 提取URL
+                // Extract URL
                 if (item.contains("URL"))
                 {
                     paper.url = item["URL"];
                 }
 
-                // 提取出版商
+                // Extract publisher information
                 if (item.contains("publisher"))
                 {
                     paper.publisher = item["publisher"];
                 }
 
-                // 生成引用键
+                // Generate citation key
                 if (!paper.authors.empty() && !paper.year.empty())
                 {
-                    // 提取第一作者姓氏
+                    // Extract the last name of the first author
                     size_t comma_pos = paper.authors[0].find(",");
                     std::string first_author = (comma_pos != std::string::npos)
                                                    ? paper.authors[0].substr(0, comma_pos)
                                                    : paper.authors[0];
 
-                    // 移除非字母数字字符
+                    // Remove non-alphanumeric characters
                     first_author.erase(std::remove_if(first_author.begin(), first_author.end(),
                                                       [](unsigned char c)
                                                       { return !std::isalnum(c); }),
@@ -230,7 +229,7 @@ class CrossRefAPI : public CitationSource
                 }
                 else
                 {
-                    // 如果没有作者或年份，使用DOI或标题的一部分
+                    // If there is no author or year, use DOI or a part of the title
                     if (!paper.doi.empty())
                     {
                         paper.citation_key =
@@ -267,7 +266,7 @@ class CrossRefAPI : public CitationSource
     std::string name() const override { return "CrossRef"; }
 };
 
-// Google Scholar API实现
+// Google Scholar API implementation
 class GoogleScholarAPI : public CitationSource
 {
   public:
@@ -275,7 +274,7 @@ class GoogleScholarAPI : public CitationSource
     {
         QueryResult result;
 
-        // 初始化CURL
+        // Initialize CURL
         CURL *curl = curl_easy_init();
         if (!curl)
         {
@@ -283,7 +282,7 @@ class GoogleScholarAPI : public CitationSource
             return result;
         }
 
-        // 构建URL并对查询字符串进行URL编码
+        // Construct URL and encode the query string
         char *encoded_query = curl_easy_escape(curl, query_string.c_str(), query_string.length());
         if (!encoded_query)
         {
@@ -296,20 +295,20 @@ class GoogleScholarAPI : public CitationSource
                           "&hl=en&as_sdt=0,5";
         curl_free(encoded_query);
 
-        // 设置请求参数
+        // Set request parameters
         std::string response_string;
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
 
-        // 添加用户代理
+        // Add user agent
         curl_easy_setopt(curl, CURLOPT_USERAGENT,
                          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
 
-        // 设置cookie文件
+        // Set cookie file
         curl_easy_setopt(curl, CURLOPT_COOKIEFILE, "");
 
-        // 执行请求
+        // Perform the request
         CURLcode res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
 
@@ -323,9 +322,9 @@ class GoogleScholarAPI : public CitationSource
 
         try
         {
-            // 解析HTML响应
-            // 注意：这里需要添加HTML解析库，如libxml2或pugixml
-            // 以下是简化的解析逻辑
+            // Parse HTML response
+            // Note: A HTML parsing library such as libxml2 or pugixml should be included here.
+            // The following is a simplified parsing logic.
             std::istringstream stream(response_string);
             std::string line;
             PaperInfo current_paper;
@@ -333,7 +332,7 @@ class GoogleScholarAPI : public CitationSource
 
             while (std::getline(stream, line))
             {
-                // 检测结果开始
+                // Detect start of a result
                 if (line.find("<div class=\"gs_ri\">") != std::string::npos)
                 {
                     in_result = true;
@@ -343,7 +342,7 @@ class GoogleScholarAPI : public CitationSource
 
                 if (in_result)
                 {
-                    // 提取标题
+                    // Extract title
                     if (line.find("<h3 class=\"gs_rt\">") != std::string::npos)
                     {
                         size_t start = line.find(">") + 1;
@@ -354,7 +353,7 @@ class GoogleScholarAPI : public CitationSource
                         }
                     }
 
-                    // 提取作者和年份
+                    // Extract authors and year
                     if (line.find("<div class=\"gs_a\">") != std::string::npos)
                     {
                         size_t start = line.find(">") + 1;
@@ -362,7 +361,7 @@ class GoogleScholarAPI : public CitationSource
                         if (start != std::string::npos && end != std::string::npos)
                         {
                             std::string author_text = line.substr(start, end - start);
-                            // 解析作者
+                            // Parse authors
                             std::istringstream author_stream(author_text);
                             std::string author;
                             while (std::getline(author_stream, author, ','))
@@ -373,7 +372,7 @@ class GoogleScholarAPI : public CitationSource
                                 }
                             }
 
-                            // 尝试提取年份
+                            // Try to extract year
                             std::regex year_pattern("\\b(19|20)\\d{2}\\b");
                             std::smatch year_match;
                             if (std::regex_search(author_text, year_match, year_pattern))
@@ -383,13 +382,13 @@ class GoogleScholarAPI : public CitationSource
                         }
                     }
 
-                    // 检测结果结束
+                    // Detect the end of a result
                     if (line.find("</div>") != std::string::npos)
                     {
                         in_result = false;
                         if (!current_paper.title.empty())
                         {
-                            // 生成引用键
+                            // Generate citation key
                             if (!current_paper.authors.empty() && !current_paper.year.empty())
                             {
                                 size_t comma_pos = current_paper.authors[0].find(",");
@@ -426,7 +425,7 @@ class GoogleScholarAPI : public CitationSource
     std::string name() const override { return "Google Scholar"; }
 };
 
-// 论文查询接口类
+// Paper citation API class
 class PaperCitationAPI
 {
   private:
@@ -435,13 +434,13 @@ class PaperCitationAPI
   public:
     PaperCitationAPI()
     {
-        // 添加支持的数据源
+        // Add supported data sources
         // sources.push_back(std::make_unique<CrossRefAPI>());
         sources.push_back(std::make_unique<GoogleScholarAPI>());
-        // 可以添加更多数据源，如arXiv, IEEE Xplore, Scopus等
+        // Additional sources can be added, such as arXiv, IEEE Xplore, Scopus, etc.
     }
 
-    // 通过查询字符串搜索论文
+    // Search for papers with the given query string
     std::vector<PaperInfo> search(const std::string &query_string)
     {
         std::vector<PaperInfo> results;
@@ -466,12 +465,12 @@ class PaperCitationAPI
         return results;
     }
 
-    // 将论文信息转换为BibTeX格式
+    // Convert paper information to BibTeX format
     std::string toBibTeX(const PaperInfo &paper)
     {
         std::string bib_entry;
 
-        // 根据类型选择不同的引用格式
+        // Choose different entry type based on the paper type
         if (paper.type == "book")
         {
             bib_entry = "@book{" + paper.citation_key + ",\n";
@@ -556,7 +555,7 @@ class PaperCitationAPI
             bib_entry += "  url = {" + paper.url + "},\n";
         }
 
-        // 移除最后一个逗号和换行符
+        // Remove the last comma and newline
         bib_entry.pop_back();
         bib_entry.pop_back();
 
@@ -565,7 +564,7 @@ class PaperCitationAPI
         return bib_entry;
     }
 
-    // 生成并保存.bib文件
+    // Generate and save a .bib file
     bool saveBibFile(const std::vector<PaperInfo> &papers,
                      const std::string &filename = "references.bib")
     {
