@@ -1,0 +1,36 @@
+# Build directories
+build/
+cmake-build-debug/
+cmake-build-release/
+build-*/
+
+# CMake generated files
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+compile_commands.json
+Makefile
+install_manifest.txt
+
+# VS Code settings and workspace files
+.vscode/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# User-specific and temporary files
+*.user
+*.suo
+*.tmp
+*.swp
+*~
+
+# Log files
+*.log
+
+# Cache directories
+.cache/
+
+.git

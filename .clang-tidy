@@ -1,9 +1,15 @@
-Checks: "-*,performance-*,modernize-*,readability-*,bugprone-*,-modernize-use-trailing-return-type"
+Checks: "-*,clang-analyzer-*,bugprone-*,performance-*,modernize-*,cppcoreguidelines-*,readability-*"
 WarningsAsErrors: false
-HeaderFilterRegex: ".*"
-FormatStyle: "file"
+HeaderFilterRegex: "^(./)?(src|inc)/"
+FormatStyle: file
 CheckOptions:
   - key: readability-identifier-naming.ClassCase
     value: CamelCase
+  - key: readability-identifier-naming.StructCase
+    value: CamelCase
   - key: readability-identifier-naming.FunctionCase
     value: camelBack
+  - key: modernize-use-nullptr.NullMacros
+    value: "NULL"
+  - key: modernize-use-auto.MinTypeNameLength
+    value: "5"
