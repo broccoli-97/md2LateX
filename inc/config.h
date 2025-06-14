@@ -2,6 +2,7 @@
 
 #include <string>
 
-namespace config {
+namespace config
+{
 const std::string API_URL = "https://jsonplaceholder.typicode.com/posts/1";
 }

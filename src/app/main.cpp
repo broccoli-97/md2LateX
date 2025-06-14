@@ -4,6 +4,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <string>
+#include <vector>
 
 #include "md_converter.h"
 
@@ -13,8 +14,8 @@ void printUsage()
     std::cout << "Available commands:\n";
     std::cout << "  1. convert <input_markdown_file> [output_latex_file]\n";
     std::cout << "     - Convert a markdown file to LaTeX\n";
-    std::cout << "     - If output file is not specified, output will be written "
-                 "to input_file_name.tex\n";
+    std::cout << "     - If output file is not specified, output will be written to "
+                 "input_file_name.tex\n";
     std::cout << "  2. help\n";
     std::cout << "     - Display this help message\n";
     std::cout << "  3. exit\n";
@@ -28,13 +29,13 @@ std::vector<std::string> splitCommand(const std::string &command)
     std::string currentArg;
     bool inQuotes = false;
 
-    for (char c : command)
+    for (char chr : command) // renamed from 'c' to 'chr'
     {
-        if (c == '"')
+        if (chr == '"')
         {
             inQuotes = !inQuotes;
         }
-        else if (c == ' ' && !inQuotes)
+        else if (chr == ' ' && !inQuotes)
         {
             if (!currentArg.empty())
             {
@@ -44,7 +45,7 @@ std::vector<std::string> splitCommand(const std::string &command)
         }
         else
         {
-            currentArg += c;
+            currentArg += chr;
         }
     }
 
@@ -85,7 +86,7 @@ bool convertMarkdownToLatex(const std::string &inputFile, std::string outputFile
     std::ifstream inFile(inputFile);
     if (!inFile)
     {
-        std::cerr << "Error: Cannot open input file: " << inputFile << std::endl;
+        std::cerr << "Error: Cannot open input file: " << inputFile << "\n";
         return false;
     }
 
@@ -106,13 +107,13 @@ bool convertMarkdownToLatex(const std::string &inputFile, std::string outputFile
     std::ofstream outFile(outputFile);
     if (!outFile)
     {
-        std::cerr << "Error: Cannot open output file: " << outputFile << std::endl;
+        std::cerr << "Error: Cannot open output file: " << outputFile << "\n";
         return false;
     }
 
     outFile << latexContent;
     outFile.close();
-    std::cout << "Conversion successful. LaTeX content written to " << outputFile << std::endl;
+    std::cout << "Conversion successful. LaTeX content written to " << outputFile << "\n";
 
     return true;
 }
@@ -122,7 +123,7 @@ int main()
     std::string command;
 
     // Display initial usage information
-    std::cout << "Welcome to Markdown to LaTeX Converter!" << std::endl;
+    std::cout << "Welcome to Markdown to LaTeX Converter!\n";
     printUsage();
 
     while (true)
@@ -144,10 +145,11 @@ int main()
 
         if (args[0] == "exit" || args[0] == "quit")
         {
-            std::cout << "Exiting program. Goodbye!" << std::endl;
+            std::cout << "Exiting program. Goodbye!\n";
             break;
         }
-        else if (args[0] == "help")
+
+        if (args[0] == "help")
         {
             printUsage();
         }
@@ -155,21 +157,20 @@ int main()
         {
             if (args.size() < 2)
             {
-                std::cout << "Error: Missing input file. Usage: convert <input_file> "
-                             "[output_file]"
-                          << std::endl;
+                std::cout
+                    << "Error: Missing input file. Usage: convert <input_file> [output_file]\n";
                 continue;
             }
 
-            std::string inputFile = args[1];
+            const std::string &inputFile = args[1];
             std::string outputFile = (args.size() > 2) ? args[2] : "";
 
             convertMarkdownToLatex(inputFile, outputFile);
         }
         else
         {
-            std::cout << "Unknown command: " << args[0] << std::endl;
-            std::cout << "Type 'help' for available commands." << std::endl;
+            std::cout << "Unknown command: " << args[0] << "\n";
+            std::cout << "Type 'help' for available commands.\n";
         }
     }
 
